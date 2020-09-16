@@ -53,7 +53,14 @@ delete_trash_file (GFile *file, gboolean del_file, gboolean del_children)
           while ((info = g_file_enumerator_next_file (enumerator, NULL, NULL)) != NULL)
             {
               child = g_file_get_child (file, g_file_info_get_name (info));
-              delete_trash_file (child, TRUE, g_file_info_get_file_type (info) == G_FILE_TYPE_DIRECTORY);
+
+              /* The g_file_delete operation works differently for locations
+               * provided by the trash backend as it prevents modifications of
+               * trashed items. For that reason, it is enough to call
+               * g_file_delete on top-level items only.
+               */
+              delete_trash_file (child, TRUE, FALSE);
+
               g_object_unref (child);
               g_object_unref (info);
             }
